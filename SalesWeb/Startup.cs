@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SalesWeb.Models;
+using SalesWeb.Data;
 
 namespace SalesWeb
 {
@@ -31,21 +32,27 @@ namespace SalesWeb
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
+
+                services.AddScoped<SeedingService>();
             });
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddDbContext<SalesWebContext>(options =>
-                    options.UseMySql(Configuration.GetConnectionString("SalesWebContext"),builder=>builder.MigrationsAssembly("SalesWeb")));
+                    options.UseMySql(Configuration.GetConnectionString("SalesWebContext"),builder=>
+                    builder.MigrationsAssembly("SalesWeb")));
+
+            services.AddScoped<SeedingService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,SeedingService seedingService)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                seedingService.Seed();
             }
             else
             {
